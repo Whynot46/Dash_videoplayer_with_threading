@@ -25,6 +25,11 @@ ymax = deque([0, 0], 19)
 yymax = 0
 
 
+class Graphs():
+    iba_graph_on = False
+    slabdata_graph_on = False
+
+
 def update_slabdata_csv(csv_path):
     df = open(csv_path)
     i = 0
@@ -47,7 +52,7 @@ def update_merged_csv(csv_path):
 
 
 def update_image():
-    frame = cv2.imread('image.jpg')
+    frame = cv2.imread('MicrosoftTeams-image (6).png')
     image = np.ones((frame.shape[0], frame.shape[1]), dtype=np.uint8) * 20
 
     gray_frame = cv2.cvtColor(frame, cv2.COLOR_BGR2GRAY)
@@ -147,31 +152,63 @@ app.layout = html.Div([
 
 
 @app.callback(
-    Output(component_id='iba_graph', component_property='figure'),
-    Input(component_id='iba_graph_button', component_property='value')
+    Output(component_id='iba_graph', component_property='figure',  allow_duplicate=True),
+    Input(component_id='iba_graph_button', component_property='value'),
+    prevent_initial_call='initial_duplicate'
 )
-def update_merged_plot(value):
-    row_time, y = update_merged_csv('merged.csv')
-    fig_1 = make_subplots()
-    fig_1.add_trace(go.Scatter(x=row_time, y=y, name="iba_file"))
+def update_iba_graph(value):
+    #row_time, y = update_merged_csv('merged.csv')
+    row_time, y = update_slabdata_csv('slabdataMetr0308_21.csv')
     data_x, data_y = update_slabdata_csv('slabdataMetr0308_21.csv')
-    fig_1.add_trace(go.Scatter(x=data_x, y=data_y, name="slabdata"))
+    fig_1 = make_subplots()
+    if not Graphs.iba_graph_on and not Graphs.slabdata_graph_on:
+        fig_1.add_trace(go.Scatter(x=row_time, y=y, name="iba_file"))
+        Graphs.iba_graph_on = True
+    elif Graphs.iba_graph_on and Graphs.slabdata_graph_on:
+        fig_1.add_trace(go.Scatter(x=data_x, y=data_y, name="slabdata"))
+        Graphs.iba_graph_on = False
+    else:
+        fig_1.add_trace(go.Scatter(x=row_time, y=y, name="iba_file"))
+        fig_1.add_trace(go.Scatter(x=data_x, y=data_y, name="slabdata"))
 
     fig_1.update_xaxes(title_text="Time")
     fig_1.update_yaxes(title_text="Distance")
 
     return fig_1
 
+@app.callback(
+    Output(component_id='iba_graph', component_property='figure', allow_duplicate=True),
+    Input(component_id='slabdata_graph_button', component_property='value'),
+    prevent_initial_call='initial_duplicate'
+)
+def update_slab_graph(value):
+    #row_time, y = update_merged_csv('merged.csv')
+    row_time, y = update_slabdata_csv('slabdataMetr0308_21.csv')
+    data_x, data_y = update_slabdata_csv('slabdataMetr0308_21.csv')
+    fig_1 = make_subplots()
+    if not Graphs.slabdata_graph_on and Graphs.iba_graph_on:
+        fig_1.add_trace(go.Scatter(x=data_x, y=data_y, name="slabdata"))
+        Graphs.slabdata_graph_on = True
+    elif not Graphs.slabdata_graph_on and not Graphs.iba_graph_on:
+        fig_1.add_trace(go.Scatter(x=row_time, y=y, name="iba_file"))
+        Graphs.slabdata_graph_on = False
+    else:
+        fig_1.add_trace(go.Scatter(x=row_time, y=y, name="iba_file"))
+        fig_1.add_trace(go.Scatter(x=data_x, y=data_y, name="slabdata"))
+
+    fig_1.update_xaxes(title_text="Time")
+    fig_1.update_yaxes(title_text="Distance")
+
+    return fig_1
 
 @app.callback(
     Output(component_id='slabdata_graph', component_property='figure'),
-    Input(component_id='slabdata_graph_button', component_property='value')
+    Input(component_id='start_button', component_property='value')
 )
 def update_slabdata_plot(value):
     fig_2 = make_subplots()
     data_x, data_y = update_slabdata_csv('slabdataMetr0308_21.csv')
     fig_2.add_trace(go.Scatter(x=data_x, y=data_y, name="real_slabdata"))
-
     fig_2.update_xaxes(title_text="Time")
     fig_2.update_yaxes(title_text="Distance")
 
