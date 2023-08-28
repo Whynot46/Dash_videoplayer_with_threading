@@ -51,18 +51,12 @@ class Dashboard:
         self.app = Dash(__name__, external_stylesheets=[dbc.themes.DARKLY])
         self.video_player = Video()
         self.app.layout = html.Div([
-            dbc.Row([
-                dbc.Col([
                     html.Img(style={'width': '920px', 'height': '800px', 'margin': '10px', 'margin-top': '50px'}, id='video_player'),
                     dcc.Interval(
                         id='videoframe_fps',
                         interval=1000/60,
                         n_intervals=0),
-                ]),
-            ])
         ])
-        
-        self.output_frame = None
 
         @self.app.callback(
             [Output(component_id='video_player', component_property='src')],
